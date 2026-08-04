@@ -26,25 +26,31 @@ jobs:
           flutter-version: '3.22.0'
           channel: 'stable'
 
-      - name: Inject Android Files Safely
+      - name: Create Clean Project Structure
         run: |
-          # Membuat file project baru di folder terpisah agar tidak menimpa kode Anda
-          flutter create --org com.supra.ecu --project-name ecu_dashboard_supra temp_project
+          # 1. Buat project baru di folder terpisah
+          flutter create --org com.supra.ecu --project-name ecu_dashboard_supra clean_project
           
-          # Memindahkan folder android, ios, dan web yang dibutuhkan ke folder utama Anda
-          cp -r temp_project/android ./android
-          
-          # Bersihkan folder sementara
-          rm -rf temp_project
+          # 2. Ambil file main.dart buatan Anda dan timpa ke project bersih
+          # Jika main.dart Anda ada di root atau di dalam lib/, perintah ini akan mendeteksinya
+          if [ -f "lib/main.dart" ]; then
+            cp -f lib/main.dart clean_project/lib/main.dart
+          elif [ -f "main.dart" ]; then
+            cp -f main.dart clean_project/lib/main.dart
+          fi
 
       - name: Install Dependencies
-        run: flutter pub get
+        run: |
+          cd clean_project
+          flutter pub get
 
       - name: Build APK (Release Mode)
-        run: flutter build apk --release
+        run: |
+          cd clean_project
+          flutter build apk --release
 
       - name: Upload APK to Artifacts
         uses: actions/upload-artifact@v4
         with:
           name: Dashboard-ECU-SupraX125
-          path: build/app/outputs/flutter-apk/app-release.apk
+          path: clean_project/build/app/outputs/flutter-apk/app-release.apk

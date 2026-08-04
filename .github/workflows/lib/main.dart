@@ -31,13 +31,12 @@ class DashboardScreen extends StatefulWidget {
 }
 
 class _DashboardScreenState extends State<DashboardScreen> {
-  // Variabel Data Sensor ECU
   double rpm = 0.0;
-  double ect = 0.0; // Engine Coolant Temp
-  double tps = 0.0; // Throttle Position
+  double ect = 0.0; 
+  double tps = 0.0; 
   double battery = 0.0;
   double speed = 0.0;
-  double injDuration = 0.0; // Injection Duration (ms)
+  double injDuration = 0.0; 
   
   Timer? _simulationTimer;
   bool isConnected = true;
@@ -49,34 +48,28 @@ class _DashboardScreenState extends State<DashboardScreen> {
     _startSimulation();
   }
 
-  // Fungsi Simulasi Pergerakan Angka Sensor ECU Honda Supra
   void _startSimulation() {
     _simulationTimer = Timer.periodic(const Duration(milliseconds: 200), (timer) {
       if (!isConnected) return;
 
       setState(() {
         _time += 0.2;
+        double wave = (sin(_time * 0.5) + 1) / 2; 
         
-        // Simulasi Gas Naik Turun secara acak / dinamis
-        double wave = (sin(_time * 0.5) + 1) / 2; // nilai antara 0 - 1
-        
-        tps = wave * 85.0 + (Random().nextDouble() * 2); // TPS 0% - 87%
+        tps = wave * 85.0 + (Random().nextDouble() * 2); 
         if (tps < 0) tps = 0;
         
-        rpm = 1400 + (wave * 7000) + (Random().nextInt(150)); // RPM 1400 (Idle) - 8500 RPM
+        rpm = 1400 + (wave * 7000) + (Random().nextInt(150)); 
+        speed = wave * 95.0 + (Random().nextInt(3)); 
         
-        speed = wave * 95.0 + (Random().nextInt(3)); // Speed 0 - 100 km/jam
-        
-        // ECT naik perlahan dari 35C lalu stabil di sekitar 88C - 92C
         if (ect < 88.0) {
           ect += 0.1;
         } else {
           ect = 89.0 + sin(_time * 0.1) * 2;
         }
 
-        battery = 13.8 + (sin(_time) * 0.2); // Voltase pengisian aki stabil 13.6v - 14.0v
-        
-        injDuration = 1.8 + (wave * 4.5); // Durasi injeksi 1.8ms - 6.3ms
+        battery = 13.8 + (sin(_time) * 0.2); 
+        injDuration = 1.8 + (wave * 4.5); 
       });
     });
   }
@@ -111,7 +104,6 @@ class _DashboardScreenState extends State<DashboardScreen> {
         padding: const EdgeInsets.all(12.0),
         child: Column(
           children: [
-            // Panel Utama: RPM BAR & DIGITAL RPM
             Container(
               width: double.infinity,
               padding: const EdgeInsets.all(16),
@@ -129,12 +121,11 @@ class _DashboardScreenState extends State<DashboardScreen> {
                     style: const TextStyle(fontSize: 48, fontFamily: 'monospace', fontWeight: FontWeight.bold, color: Colors.redAccent),
                   ),
                   const SizedBox(height: 10),
-                  // Progress Bar untuk RPM RPM Redline di 9000
                   ClipRRect(
                     borderRadius: BorderRadius.circular(5),
                     child: LinearProgressIndicator(
                       value: (rpm / 10000).clamp(0.0, 1.0),
-                      backgroundColor: Colors.grey[900],
+                      backgroundColor: Colors.grey,
                       valueColor: AlwaysStoppedAnimation<Color>(rpm > 8000 ? Colors.red : Colors.orangeAccent),
                       minHeight: 12,
                     ),
@@ -143,8 +134,6 @@ class _DashboardScreenState extends State<DashboardScreen> {
               ),
             ),
             const SizedBox(height: 12),
-
-            // Grid Sensor Lainnya
             Expanded(
               child: GridView.count(
                 crossAxisCount: 2,
@@ -153,19 +142,17 @@ class _DashboardScreenState extends State<DashboardScreen> {
                 childAspectRatio: 1.3,
                 children: [
                   _buildSensorCard('VEHICLE SPEED', speed.toStringAsFixed(0), 'Km/h', Icons.speed, Colors.blueAccent),
-                  _buildSensorCard('THROTTLE (TPS)', '${tps.toStringAsFixed(1)}%', 'Pos', Icons.shutter_speed, Colors.greenAccent),
+                  _buildSensorCard('THROTTLE (TPS)', '${tps.toStringAsFixed(1)}%', 'Pos', Icons.track_changes, Colors.greenAccent),
                   _buildSensorCard('ENG COOLANT (ECT)', '${ect.toStringAsFixed(1)}°C', 'Temp', Icons.thermostat, Colors.orangeAccent),
-                  _buildSensorCard('INJECTOR DURATION', '${injDuration.toStringAsFixed(2)}ms', 'Time', Icons.ev_station, Colors.purpleAccent),
+                  _buildSensorCard('INJECTOR DURATION', '${injDuration.toStringAsFixed(2)}ms', 'Time', Icons.av_timer, Colors.purpleAccent),
                 ],
               ),
             ),
-
-            // Panel Bawah: Voltase Aki & Info Sistem
             Container(
               width: double.infinity,
               padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
               decoration: BoxDecoration(
-                color: Colors.grey[950],
+                color: const Color(0xFF1E1E1E),
                 borderRadius: BorderRadius.circular(10),
               ),
               child: Row(
@@ -175,7 +162,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                     children: [
                       const Icon(Icons.battery_charging_full, color: Colors.yellowAccent, size: 20),
                       const SizedBox(width: 8),
-                      const Text('BATTERY VOLTAGE:', style: TextStyle(color: Colors.grey, fontSize: 12)),
+                      const Text('BATTERY:', style: TextStyle(color: Colors.grey, fontSize: 12)),
                       const SizedBox(width: 5),
                       Text(
                         '${battery.toStringAsFixed(1)} V',
@@ -185,7 +172,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                   ),
                   const Text(
                     'PROTOKOL: K-LINE KWP2000',
-                    style: TextStyle(color: Colors.blueGrey, fontSize: 10, fontWeight: FontWeight.bold),
+                    style: TextStyle(color: Colors.grey, fontSize: 10, fontWeight: FontWeight.bold),
                   ),
                 ],
               ),
@@ -202,7 +189,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
       decoration: BoxDecoration(
         color: Colors.black,
         borderRadius: BorderRadius.circular(10),
-        border: Border.all(color: Colors.grey[850]!),
+        border: Border.all(color: const Color(0xFF2C2C2C)),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -221,10 +208,10 @@ class _DashboardScreenState extends State<DashboardScreen> {
             children: [
               Text(
                 value,
-                style: const TextStyle(fontSize: 28, fontFamily: 'monospace', fontWeight: FontWeight.bold, color: Colors.white),
+                style: const TextStyle(fontSize: 26, fontFamily: 'monospace', fontWeight: FontWeight.bold, color: Colors.white),
               ),
               const SizedBox(width: 4),
-              Text(unit, style: const TextStyle(fontSize: 12, color: Colors.grey)),
+              Text(unit, style: const TextStyle(fontSize: 11, color: Colors.grey)),
             ],
           ),
         ],
